@@ -115,11 +115,39 @@ void FCFS(vector<Task>& tasks, int n) {
 
 
 void SJF(vector<Task>& tasks, int n) {
-    vector<Task> sortedTasks = tasks;
-    sort(sortedTasks.begin(), sortedTasks.end(), [](Task a, Task b) {
-        return a.burst < b.burst;
-    });
-    FCFS(sortedTasks, n);
+    int time = 0, completed = 0;
+    vector<bool> done(n, false);
+    vector<pair<int, int>> timeline;
+
+    while (completed < n) {
+        int idx = -1;
+        int shortest = INT_MAX;
+
+        // Find task with minimum burst among arrived & not completed
+        for (int i = 0; i < n; ++i) {
+            if (!done[i] && tasks[i].arrival <= time && tasks[i].burst < shortest) {
+                shortest = tasks[i].burst;
+                idx = i;
+            }
+        }
+
+        if (idx == -1) {
+            // No process has arrived yet
+            time++;
+        } else {
+            timeline.push_back({tasks[idx].id, time});
+            time += tasks[idx].burst;
+            tasks[idx].completion = time;
+            tasks[idx].turnaround = tasks[idx].completion - tasks[idx].arrival;
+            tasks[idx].waiting = tasks[idx].turnaround - tasks[idx].burst;
+            done[idx] = true;
+            completed++;
+        }
+    }
+
+    timeline.push_back({-1, time});
+    printGanttChart(timeline);
+    calculateTimes(tasks, n);
 }
 
 void SRTF(vector<Task>& tasks, int n) {
